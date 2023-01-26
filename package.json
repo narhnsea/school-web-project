@@ -1,0 +1,14 @@
+{
+  "name": "web322-app",
+  "version": "1.0.0",
+  "description": "assignment 2",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Nancy Uki Akogun",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
