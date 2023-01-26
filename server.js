@@ -30,11 +30,12 @@ app.get("/blog", function (req, res) {
 app.get("/posts", function (req, res) {
 	blogService
 		.getAllPosts()
-		.then(function (value) {
-			res.json(value);
+		.then(function (posts) {
+			res.json(posts);
 		})
 		.catch(function (err) {
-			res.json({ message: err });
+			var reply = { message: err };
+			res.json(reply);
 		});
 });
 
@@ -46,7 +47,8 @@ app.get("/categories", function (req, res) {
 			res.json(value);
 		})
 		.catch(function (err) {
-			res.json({ message: err });
+			var reply = { message: err };
+			res.json(reply);
 		});
 });
 

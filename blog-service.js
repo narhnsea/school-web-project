@@ -48,7 +48,10 @@ module.exports = {
         let publishedPosts = [];
         let promise = new Promise(function (resolve, reject) {
             for (let i = 0; i < posts.length; i++) {
-                if (posts[i].published == true) publishedPosts.push(posts[i]);
+                var post = posts[i];
+                if (post.published == true){
+                    publishedPosts.push(post);
+                }
 
                 if (publishedPosts.length > 0) {
                     resolve(publishedPosts);
