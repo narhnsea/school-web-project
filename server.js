@@ -9,7 +9,7 @@ app.use(express.static("public"));
 app.get("/", (req, res) => {
 	res.redirect("/about");
 });
-
+//setup a 'route' to listen on the default url path
 app.get("/about", (req, res) => {
 	res.sendFile(path.join(__dirname, "/views/about.html"));
 });
