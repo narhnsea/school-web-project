@@ -1,3 +1,16 @@
+/*********************************************************************************
+*  WEB322 – Assignment 02
+*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
+*  (including 3rd party web sites) or distributed to other students.
+* 
+*  Name: ______Nancy Wobo______ Student ID: ___118344209______ Date: _______08-02-2023_________
+*
+*  Cyclic Web App URL: https://uninterested-trench-coat-hen.cyclic.app/about
+*
+*  GitHub Repository URL: _https://github.com/narhnsea/web-322app.git
+*
+********************************************************************************/ 
+
 var blogService = require("./blog-service.js");
 var express = require("express");
 var app = express();
@@ -52,6 +65,7 @@ app.get("/categories", function (req, res) {
 		});
 });
 
+//middleware function
 app.use(function (req, res, next) {
 	res.status(404).send("Page not found");
 });
