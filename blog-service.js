@@ -49,7 +49,7 @@ module.exports = {
         let promise = new Promise(function (resolve, reject) {
             for (let i = 0; i < posts.length; i++) {
                 var post = posts[i];
-                if (post.published == true){
+                if (post.published == true) {
                     publishedPosts.push(post);
                 }
 
@@ -70,6 +70,69 @@ module.exports = {
                 resolve(categories);
             } else {
                 reject("no results returned");
+            }
+        });
+
+        return promise;
+    },
+
+    addPost: function (postData) {
+        let promise = new Promise((resolve, reject) => {
+            if (postData.published === undefined) {
+                postData.published = false;
+            } else {
+                postData.published = true;
+            }
+
+            // Setting the next post id
+            postData.id = posts.length + 1;
+
+            // Adding to posts
+            posts.push(postData);
+            resolve(postData);
+        });
+
+        return promise;
+    },
+
+    getPostsByCategory: function (category) {
+        let promise = new Promise((resolve, reject) => {
+            const postFilter = posts.filter(post => post.category == category);
+
+            if (postFilter.length > 0) {
+                resolve(postFilter);
+            } else {
+                reject("no results returned");
+            }
+        });
+
+        return promise;
+    },
+
+    getPostsByMinDate: function (minDate) {
+        let promise = new Promise((resolve, reject) => {
+            const postFilter = posts.filter(post => new Date(post.postDate) >= new Date(minDate));
+
+            if (postFilter.length > 0) {
+                resolve(postFilter);
+            } else {
+                reject("no results returned");
+            }
+        });
+
+        return promise;
+    },
+
+    getPostById: function (id) {
+        let promise = new Promise((resolve, reject) => {
+            const postFilter = posts.filter(post => post.id == id);
+            const uniquePost = postFilter[0];
+
+            if (uniquePost) {
+                resolve(uniquePost);
+            }
+            else {
+                reject("no result returned");
             }
         });
 

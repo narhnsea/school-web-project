@@ -9,15 +9,29 @@
 *
 *  GitHub Repository URL: _https://github.com/narhnsea/web-322app.git
 *
-********************************************************************************/ 
+********************************************************************************/
 
 var blogService = require("./blog-service.js");
 var express = require("express");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
 var app = express();
 var path = require("path");
 const port = 8080;
 
 app.use(express.static("public"));
+
+// Configuring Cloudinary
+cloudinary.config({
+	cloud_name: "",
+	api_key: "",
+	api_secret: "",
+	secure: true,
+});
+
+// Variable without any disk storage
+const upload = multer();
 
 app.get("/", (req, res) => {
 	res.redirect("/about");
@@ -41,16 +55,109 @@ app.get("/blog", function (req, res) {
 
 //posts route
 app.get("/posts", function (req, res) {
-	blogService
-		.getAllPosts()
-		.then(function (posts) {
-			res.json(posts);
-		})
-		.catch(function (err) {
-			var reply = { message: err };
-			res.json(reply);
-		});
+
+	if (req.query.category) {
+
+		blogService.getPostsByCategory(req.query.category)
+			.then((data) => {
+				res.send(data);
+			})
+			.catch((err) => {
+				res.send(err);
+			});
+
+	} else if (req.query.minDate) {
+
+		blogService.getPostsByMinDate(req.query.minDate)
+			.then((data) => {
+				res.send(data);
+			})
+
+			.catch((err) => {
+				res.send(err);
+			});
+
+	} else {
+
+		blogService
+			.getAllPosts()
+			.then(function (posts) {
+				res.json(posts);
+			})
+			.catch(function (err) {
+				var reply = { message: err };
+				res.json(reply);
+			});
+
+	}
+
 });
+
+app.get("/posts/add", function (req, res) {
+	res.sendFile(path.join(__dirname, "/views/addPost.html"));
+});
+
+app.post("/posts/add", upload.single("featureImage"), function (req, res) {
+	if (req.file) {
+		let streamUpload = (req) => {
+			return new Promise((resolve, reject) => {
+				let stream = cloudinary.uploader.upload_stream(
+					(error, result) => {
+						if (result) {
+							resolve(result);
+						} else {
+							reject(error);
+						}
+					}
+				);
+
+				streamifier.createReadStream(req.file.buffer).pipe(stream);
+			});
+		};
+
+		async function upload(req) {
+			let result = await streamUpload(req);
+			return result;
+		}
+
+		upload(req).then((uploaded) => {
+			processPost(uploaded.url);
+		});
+
+	} else {
+		processPost("");
+	}
+
+	function processPost(imageUrl) {
+		req.body.featureImage = imageUrl;
+		let post = {};
+		post.body = req.body.body;
+		post.title = req.body.title;
+		post.postDate = Date.now();
+		post.category = req.body.category;
+		post.featureImage = req.body.featureImage;
+		post.published = req.body.published;
+		console.log(post);
+		if (post.title) {
+			blogService.addPost(post);
+		}
+
+		res.redirect("/posts");
+	}
+
+
+});
+
+
+app.get("/post/:value", (req, res) => {
+	blogService.getPostById(req.params.value)
+		.then((data) => {
+			res.send(data);
+		})
+		.catch((err) => {
+			res.send(err);
+		});
+})
 
 //categories route
 app.get("/categories", function (req, res) {

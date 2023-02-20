@@ -9,6 +9,9 @@
   "author": "Nancy Wobo",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.16.3"
+    "express": "^4.16.3",
+    "cloudinary": "^1.33.0",
+    "multer": "^1.4.5-lts.1",
+    "streamifier": "^0.1.1"
   }
 }
