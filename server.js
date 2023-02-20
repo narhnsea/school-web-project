@@ -24,9 +24,9 @@ app.use(express.static("public"));
 
 // Configuring Cloudinary
 cloudinary.config({
-	cloud_name: "",
-	api_key: "",
-	api_secret: "",
+	cloud_name: "dprntcyx8",
+	api_key: "346661439822358",
+	api_secret: "9hqHMaUs5yrOE_Bxw2eX1Qxukmg",
 	secure: true,
 });
 
