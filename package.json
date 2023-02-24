@@ -12,6 +12,8 @@
     "express": "^4.16.3",
     "cloudinary": "^1.33.0",
     "multer": "^1.4.5-lts.1",
-    "streamifier": "^0.1.1"
+    "streamifier": "^0.1.1",
+    "express-handlebars": "^6.0.6",
+    "strip-js": "^1.2.0"
   }
 }

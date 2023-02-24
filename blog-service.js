@@ -86,7 +86,9 @@ module.exports = {
 
             // Setting the next post id
             postData.id = posts.length + 1;
-
+            var today = new Date();
+            today = today.toISOString().substring(0, 10);
+            postData.postDate = today;
             // Adding to posts
             posts.push(postData);
             resolve(postData);
@@ -138,4 +140,17 @@ module.exports = {
 
         return promise;
     },
+
+    getPublishedPostsByCategory: function (cat) {
+        let promise = new Promise((resolve, reject) => {
+            const postFilter = posts.filter(post => post.category == cat && post.published == true);
+            if (postFilter.length > 0) {
+                resolve(postFilter);
+            } else {
+                reject("no results returned");
+            }
+        });
+
+        return promise;
+    }
 };
