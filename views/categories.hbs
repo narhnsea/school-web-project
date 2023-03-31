@@ -1,7 +1,7 @@
 <div class="row">
     <h2>
         Categories
-        <a href="/categories/add" class="btn btn-success pull-right">Add Category</a>    
+        <a href="/categories/add" class="btn btn-success pull-right">Add Category</a>
     </h2>
     <hr />
     <div class="table-responsive">
@@ -10,21 +10,23 @@
                 <tr>
                     <th>Category&nbsp;ID</th>
                     <th>Category&nbsp;name</th>
+                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 {{#each categories}}
-                    <tr>
-                        <td><a href="/posts?category={{id}}">{{id}}</a></td>
-                        <td><a href="/posts?category={{id}}">{{category}}</a></td>
-                    </tr>
+                <tr>
+                    <td><a href="/posts?category={{id}}">{{id}}</a></td>
+                    <td><a href="/posts?category={{id}}">{{category}}</a></td>
+                    <td><a href="/categories/delete/{{id}}" class="btn btn-danger pull-right">remove</a></td>
+                </tr>
                 {{/each}}
             </tbody>
         </table>
     </div>
 </div>
 {{#unless categories}}
-    <div class="col-md-12 text-center">
-        <strong>{{message}}</strong>
-    </div>
+<div class="col-md-12 text-center">
+    <strong>{{message}}</strong>
+</div>
 {{/unless}}
