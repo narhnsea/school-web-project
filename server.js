@@ -3,7 +3,7 @@
 *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
 *  (including 3rd party web sites) or distributed to other students.
 * 
-*  Name: ______Nancy Wobo______ Student ID: ___118344209______ Date: _______31-03-2023_________
+*  Name: ______Nancy Wobo______ Student ID: ___118344209______ Date: _______14-04-2023_________
 *
 *  Cyclic Web App URL: https://uninterested-trench-coat-hen.cyclic.app/about
 *
@@ -12,6 +12,7 @@
 ********************************************************************************/
 
 var blogService = require("./blog-service.js");
+var authService = require("./auth-service");
 var express = require("express");
 var app = express();
 const multer = require("multer");
@@ -20,6 +21,7 @@ const streamifier = require("streamifier");
 const exphbs = require('express-handlebars');
 const stripJs = require('strip-js');
 var path = require("path");
+const clientSessions=require("client-sessions")
 app.use(express.urlencoded({extended: true}));
 const port = 8080;
 
@@ -55,9 +57,69 @@ app.engine(".hbs", exphbs.engine({
 app.set('view engine', '.hbs');
 app.use(express.static("public"));
 
+app.use(clientSessions({
+    cookieName:"session",
+    secret: "mySercreKey",
+    duration: 2 * 60 * 1000,
+    activeDuration: 60 * 1000
+}));
+
+
+app.use(function(req, res, next) {
+    res.locals.session = req.session;
+    next();
+});
+
+function ensureLogin(req,res,next){
+    if(!req.session.user){
+        res.redirect("/login");
+    }else{
+        next();
+    }
+}
+
+app.get("/login", (req, res) => {
+    res.render('login');
+});
+
+app.get("/register", (req, res) => {
+    res.render('register');
+});
+
+app.post("/register", (req, res) => {
+    authService.registerUser(req.body).then(()=>{
+        res.render("register",{successMessage: "User created"}); //check this
+    }).catch((err)=>{
+        res.render("register",{errorMessage: err, userName: req.body.userName});
+    })
+});
+
+app.post("/login", (req, res) => {
+    req.body.userAgent = req.get('User-Agent');
+    authService.checkUser(req.body).then((user) => {
+        req.session.user = {
+            userName: user.userName,
+            email: user.email,
+            loginHistory: user.loginHistory
+        }
+        res.redirect('/posts');
+    }).catch((err)=>{
+        res.render("login",{errorMessage: err, userName: req.body.userName})
+    })
+});
+
+app.get("/logout", (req, res) => {
+    req.session.reset();
+    res.redirect('/');
+});
+
+app.get("/userHistory", ensureLogin, (req, res) => {
+    res.render("userHistory");
+});
+
 app.use(function (req, res, next) {
 	let route = req.path.substring(1);
-	app.locals.activeRoute = "/" + (isNaN(route.split('/')[1]) ? route.replace(/\/(?!.*)/, "") : route.replace(/\/(.*)/, ""));
+	app.locals.activeRoute = "/" + (isNaN(route.split('/')[1]) ? route.replace(/\/(?!.*)/, '') : route.replace(/\/(.*)/, ''));
 	app.locals.viewingCategory = req.query.category;
 	next();
 });
@@ -87,13 +149,14 @@ app.get("/about", (req, res) => {
 
 
 //posts route
-app.get("/posts", function (req, res) {
+app.get("/posts", ensureLogin, function (req, res) {
 
 	if (req.query.category) {
 
 		blogService.getPostsByCategory(req.query.category)
 			.then((data) => {
 				if (data.length > 0) {
+					data.sort((a,b) => new Date(b.postDate) - new Date(a.postDate));
 					res.render("posts", { posts: data });
 				}
 				else {
@@ -109,6 +172,7 @@ app.get("/posts", function (req, res) {
 		blogService.getPostsByMinDate(req.query.minDate)
 			.then((data) => {
 				if (data.length > 0) {
+					data.sort((a,b) => new Date(b.postDate) - new Date(a.postDate));
 					res.render("posts", { posts: data });
 				}
 				else {
@@ -126,6 +190,7 @@ app.get("/posts", function (req, res) {
 			.getAllPosts()
 			.then(function (data) {
 				if (data.length > 0) {
+					data.sort((a,b) => new Date(b.postDate) - new Date(a.postDate));
 					res.render("posts", { posts: data });
 				}
 				else {
@@ -140,7 +205,7 @@ app.get("/posts", function (req, res) {
 
 });
 
-app.get("/posts/add", function (req, res) {
+app.get("/posts/add",ensureLogin, function (req, res) {
 	blogService.getCategories().then((data) => {
 		res.render("addPost", { layout: "main.hbs", categories: data });
 	}).catch((err) => {
@@ -148,7 +213,7 @@ app.get("/posts/add", function (req, res) {
 	})
 });
 
-app.post("/posts/add", upload.single("featureImage"), function (req, res) {
+app.post("/posts/add", ensureLogin, upload.single("featureImage"), function (req, res) {
 	if (req.file) {
 		let streamUpload = (req) => {
 			return new Promise((resolve, reject) => {
@@ -199,7 +264,7 @@ app.post("/posts/add", upload.single("featureImage"), function (req, res) {
 });
 
 
-app.get("/post/:value", (req, res) => {
+app.get("/post/:value", ensureLogin, (req, res) => {
 	blogService.getPostById(req.params.value)
 		.then((data) => {
 			res.send(data);
@@ -210,7 +275,7 @@ app.get("/post/:value", (req, res) => {
 })
 
 //categories route
-app.get("/categories", function (req, res) {
+app.get("/categories", ensureLogin, function (req, res) {
 	blogService
 		.getCategories()
 		.then(function (data) {
@@ -227,12 +292,12 @@ app.get("/categories", function (req, res) {
 });
 
 
-app.get("/categories/add", function (req, res) {
+app.get("/categories/add", ensureLogin, function (req, res) {
 	res.render("addCategory", { layout: "main.hbs" });
 });
 
 
-app.post("/categories/add", (req, res) => {
+app.post("/categories/add", ensureLogin, (req, res) => {
 	blogService.addCategory(req.body).then(() => {
 		res.redirect("/categories");
 	}).catch((err) => {
@@ -241,7 +306,7 @@ app.post("/categories/add", (req, res) => {
 });
 
 
-app.get("/categories/delete/:id", function (req, res) {
+app.get("/categories/delete/:id", ensureLogin, function (req, res) {
 	blogService.deleteCategoryById(req.params.id).then(() => {
 		res.redirect("/categories");
 	}).catch((err) => {
@@ -250,7 +315,7 @@ app.get("/categories/delete/:id", function (req, res) {
 });
 
 
-app.get("/posts/delete/:id", function (req, res) {
+app.get("/posts/delete/:id", ensureLogin, function (req, res) {
 	blogService.deletePostById(req.params.id).then(() => {
 		res.redirect("/posts");
 	}).catch((err) => {
@@ -309,7 +374,7 @@ app.get('/blog', async (req, res) => {
 });
 
 
-app.get('/blog/:id', async (req, res) => {
+app.get('/blog/:id', ensureLogin, async (req, res) => {
 
 	// Declare an object to store properties for the view
 	let viewData = {};
@@ -368,6 +433,7 @@ app.use(function (req, res, next) {
 
 blogService
 	.initialize()
+	.then(authService.initialize)
 	.then(function (msg) {
 		console.log(msg);
 		console.log(`Express http server listening on ${port}`);

@@ -117,11 +117,11 @@ module.exports = {
         });
     },
 
-    getPostById: function (id) {
+    getPostById: function (pId) {
         return new Promise((resolve, reject) => {
             Post.findAll({
                 where: {
-                    id: id
+                    id: pId
                 }
             }).then((data) => {
                 resolve(data[0]);
